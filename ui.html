@@ -1,0 +1,144 @@
+<style>
+
+  html, body {
+    padding: 0px;
+    margin: 0px;
+    font-family: 'Lato', sans-serif;
+  }
+
+  p {
+    padding: 0px;
+    margin: 0px;
+    text-decoration: none;
+  }
+
+  .parentbox {
+    display: inline-block;
+    border: 1px solid #fafafa;
+    vertical-align: top;
+    height: calc(100% - 70px);
+    overflow-y: scroll;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.parentbox::-webkit-scrollbar {
+  display: none;
+}
+
+.buttonsec {
+  display: inline-block;
+  width: 100%;
+  padding: 35px;
+  box-sizing: border-box;
+}
+
+.buttonsec * {
+  vertical-align: middle;
+}
+
+.frameName {
+    display: block;
+    padding: 15px 10px;
+    box-sizing: border-box;
+    border-bottom: 1px solid #dadada;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.frameName:hover {
+  background: lightblue;
+}
+
+#content {
+  font-size: 13px;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+#frameTitle span {
+  padding: 3px;
+  background: #dadada;
+}
+</style>
+
+<div>
+<div style="width: 200px" class="parentbox">
+  <span id="frameTitle">Available Frames</span>
+  <div id="frames"></div>
+</div>
+<div style="width: calc(100% - 210px);" class="parentbox">
+  <div id="content"></div>
+</div>
+</div>
+
+<div align="center" class="buttonsec">
+  <button id="create">Get available Frames</button>
+  <button id="cancel">Close</button>
+</div>
+
+
+<script>
+
+
+document.getElementById('create').onclick = () => {
+  const textbox = document.getElementById('count');
+  parent.postMessage({ pluginMessage: { type: 'get-frame-list' } }, '*')
+}
+
+document.getElementById('cancel').onclick = () => {
+  
+  parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*')
+}
+
+onmessage = (event) => {
+  var data = event.data.pluginMessage;
+
+  switch(data.type){
+    case "update-frame-list": updateFrameList(data.value);
+    break;
+
+    case "update-frame-text": updateFrameText(data.value);
+    break;
+  }
+}
+
+function updateFrameList(data) {
+  var frameBox = document.getElementById("frames");
+  frameBox.innerHTML = '';
+  var frameLists = data;
+  var i = 0;
+    
+    for(const id in frameLists) {
+      var frameName = frameLists[id];
+
+      var listItem = document.createElement("P");
+      listItem.innerText = frameName;
+      listItem.setAttribute("data-id", id);
+      listItem.setAttribute("class", "frameName");
+      listItem.setAttribute("onclick", "getInnerText(this)");
+      frameBox.appendChild(listItem);
+      i=i+1;
+    }
+  document.getElementById("frameTitle").innerHTML = "Available Frames" + "<span>" + i + "</span>";
+}
+
+function updateFrameText(data) {
+  var contentBox = document.getElementById("content");
+  contentBox.innerHTML = '';
+
+  data.forEach(line => {
+    var span = document.createElement("SPAN");
+    span.style.display = "block";
+    span.innerText = line;
+    contentBox.appendChild(span);
+  });
+}
+
+function getInnerText(el) {
+  var frameID = el.getAttribute("data-id");
+  parent.postMessage({ pluginMessage: { type: 'get-inner-text', id: frameID } }, '*')
+}
+
+</script>
